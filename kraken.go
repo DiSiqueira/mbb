@@ -149,7 +149,6 @@ func (b *kraken) Ticker() (*krakenapi.PairTickerInfo, error) {
 	}
 
 	b.lastTicker = &ticker.XXBTZEUR
-	fmt.Printf("Last Price: %s\n", b.lastTicker.Close[0])
 
 	return &ticker.XXBTZEUR, nil
 }
