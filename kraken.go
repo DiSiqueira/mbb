@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/beldur/kraken-go-api-client"
 	"strconv"
+	"strings"
+
+	"github.com/beldur/kraken-go-api-client"
+	"time"
 )
 
 type (
@@ -27,14 +30,20 @@ type (
 		api        *krakenapi.KrakenApi
 		values     map[string]float32
 		lastTicker *krakenapi.PairTickerInfo
+		lastBuy    float32
 	}
 )
 
 func NewKraken(key, secret string) *kraken {
-	return &kraken{
+	k := &kraken{
 		api:    krakenapi.New(key, secret),
 		values: map[string]float32{},
 	}
+
+	k.Balance()
+	k.Ticker()
+
+	return k
 }
 
 func (b *kraken) Balance() (float32, float32, error) {
@@ -44,7 +53,10 @@ func (b *kraken) Balance() (float32, float32, error) {
 	}
 
 	b.values["EUR"] = balance.ZEUR
-	b.values["XBT"] = balance.ZEUR
+	b.values["XBT"] = balance.XXBT
+
+	fmt.Printf("XBT: %.8f\n", balance.XXBT)
+	fmt.Printf("EUR: %.8f\n", balance.ZEUR)
 
 	return balance.ZEUR, balance.XXBT, nil
 }
@@ -62,13 +74,27 @@ func (b *kraken) forceOrder(direction string, volume float32) error {
 	for err != nil {
 		err = b.order(direction, volume)
 	}
-	_, _, err = b.Balance()
-	return err
+
+	eurStart, btcStart := b.values["EUR"], b.values["XBT"]
+
+	eur, btc, err := b.Balance()
+	if err != nil {
+		return err
+	}
+
+	for eur == eurStart && btc == btcStart {
+		time.Sleep(5 * time.Second)
+		eur, btc, err = b.Balance()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (b *kraken) order(direction string, volume float32) error {
-
-	fmt.Sprintf("Volume: %.8f \n", volume)
+	fmt.Printf("ORDER: %s - %.8f \n", strings.ToUpper(direction), volume)
 
 	_, err := b.api.AddOrder(
 		"XXBTZEUR",
@@ -90,16 +116,30 @@ func (b *kraken) order(direction string, volume float32) error {
 }
 
 func (b *kraken) Sell() error {
+	fmt.Printf("Selling: %f \n", b.values["XBT"])
+	if b.values["XBT"] <= 0.0001 {
+		return nil
+	}
+
 	return b.sell(b.values["XBT"])
 }
 
 func (b *kraken) Buy() error {
-	price, err := strconv.ParseFloat(b.lastTicker.Close[0], 10)
+	fmt.Printf("Buying: %f \n", b.values["EUR"])
+	p, err := strconv.ParseFloat(b.lastTicker.Close[0], 32)
 	if err != nil {
 		return err
 	}
+	price := float32(p)
 
-	return b.buy(b.values["EUR"] / float32(price*1.001))
+	btc := b.values["EUR"] / price * 1.005
+	if btc <= 0.0001 {
+		return nil
+	}
+
+	b.lastBuy = price
+
+	return b.buy(btc)
 }
 
 func (b *kraken) Ticker() (*krakenapi.PairTickerInfo, error) {
@@ -109,6 +149,7 @@ func (b *kraken) Ticker() (*krakenapi.PairTickerInfo, error) {
 	}
 
 	b.lastTicker = &ticker.XXBTZEUR
+	fmt.Printf("Last Price: %s\n", b.lastTicker.Close[0])
 
 	return &ticker.XXBTZEUR, nil
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"time"
 )
 
 func main() {
@@ -12,32 +14,52 @@ func main() {
 
 	api := NewKraken(key, secret)
 
-	eur, xbt, err := api.Balance()
-	if err != nil {
+	if err := start(api); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("XBT: %.8f\n", xbt)
-	fmt.Printf("EUR: %.8f\n", eur)
-
-	ticket, err := api.Ticker()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Last Price: %.8f\n", ticket.Close[0])
-
-	if xbt > 0 {
-		err = api.Sell()
+	biggerPrice := api.lastBuy
+	hold := true
+	for hold {
+		ticker, err := api.Ticker()
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		p, err := strconv.ParseFloat(ticker.Close[0], 32)
+		if err != nil {
+			log.Fatal(err)
+		}
+		lastPrice := float32(p)
+		diff := lastPrice / biggerPrice
+
+		if diff < .99 {
+			hold = false
+		}
+
+		if lastPrice > biggerPrice {
+			biggerPrice = lastPrice
+		}
+
+		fmt.Printf("Last Price: %f Bigger Price: %f Difference: %f \n", lastPrice, biggerPrice, diff)
+		time.Sleep(time.Second * 25)
 	}
 
-	err = api.Buy()
-	if err != nil {
+	if err := api.Sell(); err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("finished")
+}
+
+func start(api *kraken) error {
+	if err := api.Sell(); err != nil {
+		return err
+	}
+
+	if err := api.Buy(); err != nil {
+		return err
+	}
+
+	return nil
 }
