@@ -42,7 +42,7 @@ func main() {
 		}
 
 		fmt.Printf("Last Price: %f Bigger Price: %f Difference: %f \n", lastPrice, biggerPrice, diff)
-		time.Sleep(time.Second * 25)
+		time.Sleep(time.Second * 4)
 	}
 
 	if err := api.Sell(); err != nil {
