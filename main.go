@@ -14,7 +14,7 @@ func main() {
 
 	api := NewKraken(key, secret)
 
-	if err := start(api); err != nil {
+	if err := api.Buy(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -50,16 +50,4 @@ func main() {
 	}
 
 	fmt.Println("finished")
-}
-
-func start(api *kraken) error {
-	if err := api.Sell(); err != nil {
-		return err
-	}
-
-	if err := api.Buy(); err != nil {
-		return err
-	}
-
-	return nil
 }

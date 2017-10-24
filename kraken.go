@@ -142,13 +142,17 @@ func (b *kraken) Buy() error {
 	return b.buy(btc)
 }
 
-func (b *kraken) Ticker() (*krakenapi.PairTickerInfo, error) {
+func (b *kraken) ticker() *krakenapi.PairTickerInfo {
 	ticker, err := b.api.Ticker(krakenapi.XXBTZEUR)
 	if err != nil {
-		return nil, err
+		return b.ticker()
 	}
 
-	b.lastTicker = &ticker.XXBTZEUR
+	return &ticker.XXBTZEUR
+}
 
-	return &ticker.XXBTZEUR, nil
+func (b *kraken) Ticker() (*krakenapi.PairTickerInfo, error) {
+	b.lastTicker = b.ticker()
+
+	return b.lastTicker, nil
 }
