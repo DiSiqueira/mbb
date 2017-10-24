@@ -14,14 +14,17 @@ func main() {
 
 	api := NewKraken(key, secret)
 
+	fmt.Println("Buy all in BTC")
 	if err := api.Buy(); err != nil {
 		log.Fatal(err)
 	}
 
 	for {
+		fmt.Println("Wait to sell all BTC")
 		if err := sell(api); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("Wait to buy all BTC")
 		if err := buy(api); err != nil {
 			log.Fatal(err)
 		}
