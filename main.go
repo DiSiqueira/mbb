@@ -33,7 +33,7 @@ func main() {
 	fmt.Println("finished")
 }
 
-func buy(api *kraken) error {
+func sell(api *kraken) error {
 	smallerPrice := api.lastBuy
 	wait := true
 	for wait {
@@ -61,14 +61,14 @@ func buy(api *kraken) error {
 		time.Sleep(time.Second * 4)
 	}
 
-	if err := api.Buy(); err != nil {
+	if err := api.Sell(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func sell(api *kraken) error {
+func buy(api *kraken) error {
 	biggerPrice := api.lastBuy
 	hold := true
 	for hold {
@@ -96,7 +96,7 @@ func sell(api *kraken) error {
 		time.Sleep(time.Second * 4)
 	}
 
-	if err := api.Sell(); err != nil {
+	if err := api.Buy(); err != nil {
 		return err
 	}
 
