@@ -32,7 +32,7 @@ type (
 	}
 
 	Market interface {
-		Ticker() (*krakenapi.PairTickerInfo, error)
+		Ticker() (float32, error)
 	}
 
 	Config interface {

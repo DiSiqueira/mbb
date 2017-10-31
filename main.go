@@ -6,7 +6,6 @@ import (
 	"github.com/disiqueira/mbb/pkg/trader"
 	"github.com/kelseyhightower/envconfig"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -44,16 +43,11 @@ func sell(api trader.Exchange) error {
 	smallerPrice := float32(0)
 	wait := true
 	for wait {
-		ticker, err := api.Ticker()
+		lastPrice, err := api.Ticker()
 		if err != nil {
 			return err
 		}
 
-		p, err := strconv.ParseFloat(ticker.Close[0], 32)
-		if err != nil {
-			return err
-		}
-		lastPrice := float32(p)
 		diff := lastPrice / smallerPrice
 
 		if diff > 1.01 {
@@ -79,16 +73,11 @@ func buy(api trader.Exchange) error {
 	biggerPrice := float32(0)
 	hold := true
 	for hold {
-		ticker, err := api.Ticker()
+		lastPrice, err := api.Ticker()
 		if err != nil {
 			return err
 		}
 
-		p, err := strconv.ParseFloat(ticker.Close[0], 32)
-		if err != nil {
-			return err
-		}
-		lastPrice := float32(p)
 		diff := lastPrice / biggerPrice
 
 		if diff < .99 {

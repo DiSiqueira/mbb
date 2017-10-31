@@ -141,8 +141,11 @@ func (k *kraken) ticker() *krakenapi.PairTickerInfo {
 	return &ticker.XXBTZEUR
 }
 
-func (k *kraken) Ticker() (*krakenapi.PairTickerInfo, error) {
+func (k *kraken) Ticker() (float32, error) {
 	k.lastTicker = k.ticker()
-
-	return k.lastTicker, nil
+	p, err := strconv.ParseFloat(k.lastTicker.Close[0], 32)
+	if err != nil {
+		return 0, err
+	}
+	return float32(p), nil
 }
