@@ -2,17 +2,24 @@ package main
 
 import (
 	"fmt"
+	"github.com/disiqueira/mbb/pkg/config"
+	"github.com/disiqueira/mbb/pkg/trader"
+	"github.com/kelseyhightower/envconfig"
 	"log"
-	"os"
 	"strconv"
 	"time"
 )
 
 func main() {
-	key := os.Getenv("KRAKEN_KEY")
-	secret := os.Getenv("KRAKEN_SECRET")
+	configs := config.NewSpecification()
+	if err := envconfig.Process("mbb", configs); err != nil {
+		panic(err.Error())
+	}
 
-	api := NewKraken(key, secret)
+	api, err := trader.NewExchange(configs)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	fmt.Println("Buy all in BTC")
 	if err := api.Buy(); err != nil {
@@ -33,8 +40,8 @@ func main() {
 	fmt.Println("finished")
 }
 
-func sell(api *kraken) error {
-	smallerPrice := api.lastBuy
+func sell(api trader.Exchange) error {
+	smallerPrice := float32(0)
 	wait := true
 	for wait {
 		ticker, err := api.Ticker()
@@ -68,8 +75,8 @@ func sell(api *kraken) error {
 	return nil
 }
 
-func buy(api *kraken) error {
-	biggerPrice := api.lastBuy
+func buy(api trader.Exchange) error {
+	biggerPrice := float32(0)
 	hold := true
 	for hold {
 		ticker, err := api.Ticker()
