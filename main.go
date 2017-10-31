@@ -40,7 +40,10 @@ func main() {
 }
 
 func sell(api trader.Exchange) error {
-	smallerPrice := float32(0)
+	smallerPrice, err := api.Ticker()
+	if err != nil {
+		return err
+	}
 	wait := true
 	for wait {
 		lastPrice, err := api.Ticker()
@@ -70,7 +73,10 @@ func sell(api trader.Exchange) error {
 }
 
 func buy(api trader.Exchange) error {
-	biggerPrice := float32(0)
+	biggerPrice, err := api.Ticker()
+	if err != nil {
+		return err
+	}
 	hold := true
 	for hold {
 		lastPrice, err := api.Ticker()
