@@ -3,7 +3,6 @@ package trader
 import (
 	"errors"
 	"fmt"
-	"github.com/beldur/kraken-go-api-client"
 	"sync"
 )
 
